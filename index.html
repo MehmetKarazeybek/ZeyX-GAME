@@ -1,616 +1,862 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZeyX Sesli Asistan</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #1e1e2f 0%, #2a2a4a 100%);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    h1 {
-      font-size: 2.8rem;
-      color: #00ddeb;
-      margin-bottom: 1.5rem;
-      text-shadow: 0 0 10px rgba(0, 221, 235, 0.5);
-      animation: fadeIn 1s ease-in-out;
-    }
-
-    .status {
-      font-size: 1.4rem;
-      color: #ff79c6;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-
-    .status.active {
-      color: #50fa7b;
-      font-weight: 600;
-      animation: pulse 1.5s infinite;
-    }
-
-    .status.error {
-      color: #ff5555;
-    }
-
-    #response {
-      font-size: 1.1rem;
-      color: #f1fa8c;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      padding: 1.2rem;
-      border-radius: 15px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      margin-top: 2rem;
-      width: 90%;
-      max-width: 700px;
-      transition: transform 0.3s ease;
-    }
-
-    #response:hover {
-      transform: scale(1.02);
-    }
-
-    .button {
-      background: linear-gradient(45deg, #ff6b6b, #ff8e53);
-      color: white;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border: none;
-      padding: 0.8rem 2rem;
-      border-radius: 50px;
-      cursor: pointer;
-      margin-top: 2rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-    }
-
-    .button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
-    }
-
-    .footer {
-      position: fixed;
-      bottom: 1rem;
-      font-size: 0.85rem;
-      color: #b0b0b0;
-    }
-
-    .footer a {
-      color: #00ddeb;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    .footer a:hover {
-      color: #50fa7b;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .mic-animation {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(80, 250, 123, 0.5), transparent);
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      opacity: 0;
-      animation: micPulse 2s infinite;
-      z-index: -1;
-    }
-
-    .mic-animation.active {
-      opacity: 1;
-    }
-
-    @keyframes micPulse {
-      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash Klonu</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        canvas {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 3;
+        }
+        #home, #shop {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #cubePreview {
+            width: 60px;
+            height: 60px;
+            margin: 20px auto;
+            animation: rotatePreview 8s linear infinite;
+        }
+        @keyframes rotatePreview {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        button {
+            display: block;
+            width: 200px;
+            padding: 15px;
+            margin: 10px auto;
+            background: linear-gradient(180deg, #ccc, #aaa);
+            color: #000;
+            border: 2px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(180deg, #ddd, #bbb);
+            border-color: #888;
+            transform: translateY(-2px);
+        }
+        #shopItems {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            justify-items: center;
+            padding: 10px;
+        }
+        .shop-item {
+            text-align: center;
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            width: 120px;
+        }
+        .shop-item canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #555;
+            border-radius: 3px;
+        }
+        .shop-item p {
+            margin: 5px 0;
+            color: #ddd;
+            font-size: 14px;
+        }
+        .shop-item button {
+            width: 100px;
+            padding: 8px;
+            font-size: 16px;
+            margin: 5px auto;
+        }
+        h1 {
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
+            margin: 20px;
+        }
+        h2, h3, p {
+            color: #ddd;
+            margin: 10px;
+            text-shadow: 1px 1px 1px #000;
+        }
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-image: url('data:image/jpeg;base64,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');
+            background-size: cover;
+            background-position: center;
+        }
+        #profileButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            padding: 10px;
+            font-size: 16px;
+            z-index: 2;
+        }
+    </style>
 </head>
 <body>
-  <h1>ZeyX Sesli Asistan</h1>
-  <div id="status" class="status">ZeyX: Dinlemeye başla...</div>
-  <div id="response"></div>
-  <button id="testButton" class="button">Test Et</button>
-  <div class="mic-animation" id="micAnimation"></div>
+    <div id="background"></div>
+    <div id="home">
+        <h1>Geometry Dash Klonu</h1>
+        <h2>Skor: <span id="scoreDisplay">0</span> | Seviye: <span id="levelDisplay">1</span></h2>
+        <button onclick="startGame()">Oyna</button>
+        <button onclick="showShop()">Dükkan</button>
+        <h3>Seçili Küp</h3>
+        <canvas id="cubePreview" width="60" height="60"></canvas>
+    </div>
+    <div id="shop" style="display: none;">
+        <h2>Dükkan</h2>
+        <p>Skor: <span id="shopScoreDisplay">0</span></p>
+        <div id="shopItems"></div>
+        <button onclick="showHome()">Anasayfaya Dön</button>
+    </div>
+    <button id="profileButton">Profil</button>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('cubePreview');
+        const previewCtx = previewCanvas.getContext('2d');
+        const background = document.getElementById('background');
 
-  <div class="footer">
-    <p>Bu proje <a href="https://github.com/MehmetOgrenci" target="_blank">Mehmet Öğrenci</a> tarafından geliştirildi.</p>
-  </div>
-
-  <script>
-    // Speech Recognition Kurulumu
-    let recognition;
-    try {
-      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'tr-TR';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      console.log("SpeechRecognition başlatıldı.");
-    } catch (e) {
-      console.error("SpeechRecognition hatası:", e);
-      document.getElementById("status").textContent = "Ses tanıma desteklenmiyor! Chrome kullanmayı deneyin.";
-      document.getElementById("status").classList.add("error");
-    }
-
-    let assistantActive = false;
-    let isSpeaking = false;
-    let lastCommand = '';
-    let lastCommandTime = 0;
-    let userName = localStorage.getItem('userName') || 'dostum';
-    let conversationContext = '';
-    let notes = JSON.parse(localStorage.getItem('notes')) || [];
-    let recentQuestions = JSON.parse(localStorage.getItem('recentQuestions')) || [];
-    let pendingSearchQuery = null;
-    const statusDiv = document.getElementById("status");
-    const responseDiv = document.getElementById("response");
-    const micAnimation = document.getElementById("micAnimation");
-
-    // Bilgi tabanı
-    const knowledgeBase = {
-      "türkiye başkenti": "Türkiye’nin başkenti Ankara.",
-      "dünyanın en yüksek dağı": "Dünyanın en yüksek dağı Everest, yaklaşık 8.848 metre.",
-      "ay’da kim yürüdü": "Ay’da ilk yürüyen insan Neil Armstrong, 1969’da Apollo 11 göreviyle.",
-      "einstein kimdir": "Albert Einstein, görelilik teorisini geliştiren ünlü bir fizikçi.",
-      "pi sayısı": "Pi sayısı yaklaşık 3.14159, dairelerin çevresi için kullanılır.",
-      "en büyük gezegen": "Güneş sisteminin en büyük gezegeni Jüpiter.",
-      "su kaç derecede kaynar": "Su normal şartlarda 100 derecede kaynar.",
-      "en hızlı hayvan": "En hızlı hayvan karada çita, saatte 120 km hıza ulaşabilir.",
-      "shakespeare kimdir": "William Shakespeare, Hamlet ve Romeo Juliet gibi eserleriyle ünlü bir yazar.",
-      "telefonu kim icat etti": "Telefonu Alexander Graham Bell icat etti, 1876’da."
-    };
-
-    // Çeviri sözlüğü
-    const translations = {
-      "hello": "Merhaba",
-      "goodbye": "Güle güle",
-      "thank you": "Teşekkür ederim",
-      "please": "Lütfen",
-      "love": "Aşk",
-      "friend": "Arkadaş",
-      "yes": "Evet",
-      "no": "Hayır",
-      "good": "İyi",
-      "bad": "Kötü"
-    };
-
-    // Platform açma bağlantıları
-    const platforms = {
-      "instagram": "https://www.instagram.com",
-      "youtube": "https://www.youtube.com",
-      "twitter": "https://www.x.com",
-      "chatgpt": "https://chat.openai.com"
-    };
-
-    if (recognition) {
-      recognition.onresult = function(event) {
-        if (!event.results || !event.results[0]) {
-          console.log("Sonuç alınamadı.");
-          return;
+        // Canvas'ı tam ekran yap
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        const transcript = event.results[0][0].transcript.toLowerCase().trim();
-        console.log("Algılanan komut:", transcript);
-        responseDiv.textContent = `Duyulan: ${transcript}`;
-
-        // Aynı komutun hızlı tekrarını engelle
-        if (transcript === lastCommand && Date.now() - lastCommandTime < 2000) {
-          console.log("Tekrarlanan komut, yoksayılıyor:", transcript);
-          return;
-        }
-        lastCommand = transcript;
-        lastCommandTime = Date.now();
-
-        if (!assistantActive && transcript.includes("asistan")) {
-          assistantActive = true;
-          statusDiv.textContent = "ZeyX aktif! Ne yapalım?";
-          statusDiv.classList.remove("error");
-          statusDiv.classList.add("active");
-          micAnimation.classList.add("active");
-          const greetings = [
-            `Selam ${userName}, ne yapalım?`,
-            `Hey ${userName}, hadi konuşalım!`,
-            `Merhaba ${userName}, neyi merak ettin?`
-          ];
-          speak(greetings[Math.floor(Math.random() * greetings.length)]);
-          lastCommand = '';
-          pendingSearchQuery = null;
-        } else if (assistantActive && transcript.includes("teşekkürler")) {
-          assistantActive = false;
-          statusDiv.textContent = "ZeyX: Dinlemeye başla...";
-          statusDiv.classList.remove("active", "error");
-          micAnimation.classList.remove("active");
-          const farewells = [
-            `Görüşürüz ${userName}, kendine iyi bak!`,
-            `Tamam ${userName}, yine gel!`,
-            `Sonra konuşuruz ${userName}!`
-          ];
-          speak(farewells[Math.floor(Math.random() * farewells.length)]);
-          lastCommand = '';
-          conversationContext = '';
-          pendingSearchQuery = null;
-        } else if (assistantActive && transcript.trim().length > 0) {
-          // Soruyu kaydet
-          if (recentQuestions.length >= 20) recentQuestions.shift();
-          recentQuestions.push(transcript);
-          localStorage.setItem('recentQuestions', JSON.stringify(recentQuestions));
-          handleCommand(transcript);
-        }
-      };
-
-      recognition.onerror = function(event) {
-        console.error("Ses tanıma hatası:", event.error);
-        statusDiv.textContent = `Hata: ${event.error}. Mikrofon iznini ver ${userName}, yoksa seni duyamam!`;
-        statusDiv.classList.add("error");
-        if (!isSpeaking) {
-          setTimeout(() => startRecognition(), 1000);
-        }
-      };
-
-      recognition.onend = function() {
-        console.log("Ses tanıma durduruldu, isSpeaking:", isSpeaking, "assistantActive:", assistantActive);
-        if (!isSpeaking && assistantActive) {
-          startRecognition();
-        }
-      };
-    }
-
-    function startRecognition() {
-      if (recognition && !isSpeaking) {
-        try {
-          console.log("Ses tanıma başlatılıyor...");
-          recognition.start();
-          statusDiv.textContent = assistantActive
-            ? "ZeyX aktif! Ne yapalım?"
-            : "ZeyX: Dinlemeye başla...";
-          statusDiv.classList.remove("error");
-        } catch (e) {
-          console.error("Ses tanıma başlatma hatası:", e);
-          statusDiv.textContent = `Mikrofon iznini ver ${userName}, yoksa seni duyamam!`;
-          statusDiv.classList.add("error");
-        }
-      }
-    }
-
-    async function getWeather(city) {
-      const apiKey = "YOUR_API_KEY";
-      if (!apiKey || apiKey === "YOUR_API_KEY") {
-        return `Hava ${city}’de güneşli görünüyor ${userName}, keyfini çıkar! Ne yapalım şimdi?`;
-      }
-      try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=tr`
-        );
-        const data = await response.json();
-        if (data.cod === 200) {
-          return `${city}'de hava ${data.weather[0].description}, ${data.main.temp} derece ${userName}. Başka ne yapalım?`;
-        }
-        return `${city} için hava durumu bulamadım ${userName}. Ne konuşalım?`;
-      } catch (e) {
-        return `Hava durumu alınamadı ${userName}. Hadi, başka ne yapalım?`;
-      }
-    }
-
-    function calculate(expression) {
-      try {
-        const cleanExpression = expression
-          .replace("artı", "+")
-          .replace("eksi", "-")
-          .replace("çarpı", "*")
-          .replace("bölü", "/")
-          .replace("böl", "/");
-        const result = eval(cleanExpression);
-        if (isFinite(result)) {
-          return `Sonuç ${result} ${userName}! Başka ne hesaplayalım?`;
-        }
-        return `Bunu hesaplayamadım ${userName}, başka ne yapalım?`;
-      } catch (e) {
-        return `Hesaplamada hata ${userName}, bi daha dene!`;
-      }
-    }
-
-    function performGoogleSearch(query) {
-      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-      window.open(url, "_blank");
-      return `Google’da "${query}" aramasını açtım ${userName}! Ne yapalım şimdi?`;
-    }
-
-    function openPlatform(platform) {
-      const url = platforms[platform];
-      if (url) {
-        window.open(url, "_blank");
-        return `${platform.charAt(0).toUpperCase() + platform.slice(1)}'ı açtım ${userName}, ne yapalım şimdi?`;
-      }
-      return `Bunu açamadım ${userName}, başka ne yapalım?`;
-    }
-
-    function handleCommand(command) {
-      console.log("Komut işleniyor:", command);
-      let response = null;
-
-      // Google arama izni
-      if (pendingSearchQuery && command.includes("ara")) {
-        response = performGoogleSearch(pendingSearchQuery);
-        pendingSearchQuery = null;
-        conversationContext = 'arama';
-      } else if (pendingSearchQuery && !command.includes("ara")) {
-        pendingSearchQuery = null;
-        conversationContext = '';
-      }
-
-      if (!response) {
-        const commands = {
-          "saat": () => {
-            const now = new Date();
-            const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-            conversationContext = 'saat';
-            return `Saat ${time} ${userName}. Ne yapalım şimdi?`;
-          },
-          "bugün hangi gün": () => {
-            const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-            const today = new Date().getDay();
-            conversationContext = 'zaman';
-            return `Bugün ${days[today]} ${userName}. Başka ne soracaksın?`;
-          },
-          "hava durumu": () => {
-            const cityMatch = command.match(/hava durumu\s+(.+)/) || command.match(/(.+)\s+hava durumu/);
-            const city = cityMatch ? cityMatch[1].trim() : "İstanbul";
-            conversationContext = 'hava';
-            return getWeather(city);
-          },
-          "hesap": () => {
-            const calcMatch = command.match(/hesap\s+(.+)/);
-            if (calcMatch) {
-              conversationContext = 'hesap';
-              return calculate(calcMatch[1].trim());
-            }
-            return `Ne hesaplayayım ${userName}? Mesela, 2 artı 2!`;
-          },
-          "çevir": () => {
-            const wordMatch = command.match(/çevir\s+(.+)/);
-            if (wordMatch) {
-              const word = wordMatch[1].trim();
-              const translation = translations[word] || "Bunu bilmiyorum";
-              conversationContext = 'çeviri';
-              return `${word} Türkçede "${translation}" ${userName}. Başka ne çevirelim?`;
-            }
-            return `Ne çevireyim ${userName}? Mesela, "hello"!`;
-          },
-          "espiri": () => {
-            const jokes = [
-              `Neden bilgisayar sinirli? Çok bug’lanır ${userName}!`,
-              `Klavye neden şarkıcı oldu? Tuşları vardı ${userName}!`,
-              `Pizza neden yuvarlak? Kare olsa kutuya sığmaz ${userName}!`
-            ];
-            conversationContext = 'espiri';
-            return `${jokes[Math.floor(Math.random() * jokes.length)]} Başka ister misin ${userName}?`;
-          },
-          "adın ne": () => {
-            conversationContext = 'tanışma';
-            return `Ben ZeyX, senin asistanın ${userName}! Ne konuşalım?`;
-          },
-          "adımı hatırla": () => {
-            const name = command.replace("adımı hatırla", "").trim();
-            if (name) {
-              userName = name;
-              localStorage.setItem('userName', userName);
-              conversationContext = 'tanışma';
-              return `Sana artık ${userName} diyeceğim! Ne yapalım şimdi?`;
-            }
-            return `Adın ne ${userName}? Söyle, kaydedeyim!`;
-          },
-          "not al": () => {
-            const note = command.replace("not al", "").trim();
-            if (note) {
-              notes.push({ text: note, date: new Date().toLocaleString('tr-TR') });
-              localStorage.setItem('notes', JSON.stringify(notes));
-              conversationContext = 'not';
-              return `Not aldım: ${note} ${userName}. Başka ne not alayım?`;
-            }
-            return `Ne not alayım ${userName}?`;
-          },
-          "notları göster": () => {
-            if (notes.length > 0) {
-              const noteList = notes.map((n, i) => `${i + 1}. ${n.text} (${n.date})`).join(", ");
-              conversationContext = 'not';
-              return `Notların: ${noteList} ${userName}. Başka ne yapalım?`;
-            }
-            return `Not yok ${userName}, bi tane alayım mı?`;
-          },
-          "selam": () => {
-            conversationContext = 'selam';
-            return `Selam ${userName}! Nasılsın, ne yapalım?`;
-          },
-          "nasılsın": () => {
-            conversationContext = 'sohbet';
-            return `İyiyim ${userName}, sen nasılsın? Ne konuşalım?`;
-          },
-          "günaydın": () => {
-            conversationContext = 'selam';
-            return `Günaydın ${userName}! Harika bir gün, ne yapalım?`;
-          },
-          "merhaba": () => {
-            conversationContext = 'selam';
-            return `Merhaba ${userName}! Harika bir gün, ne yapalım?`;
-          },
-          "iyi geceler": () => {
-            conversationContext = 'selam';
-            return `İyi geceler ${userName}, tatlı rüyalar! Yarın görüşürüz!`;
-          },
-          "ne yapabilirsin": () => {
-            conversationContext = 'yardım';
-            return `Saat, hava, hesap, espri, not alma, site açma... Ne istersen ${userName}! Hadi, bi şey sor!`;
-          },
-          "instagram'ı aç": () => {
-            conversationContext = 'platform';
-            return openPlatform("instagram");
-          },
-          "youtube'u aç": () => {
-            conversationContext = 'platform';
-            return openPlatform("youtube");
-          },
-          "twitter'ı aç": () => {
-            conversationContext = 'platform';
-            return openPlatform("twitter");
-          },
-          "chatgpt'yi aç": () => {
-            conversationContext = 'platform';
-            return openPlatform("chatgpt");
-          }
+        // Oyuncu
+        let player = {
+            x: 100,
+            y: window.innerHeight - 100,
+            width: 30,
+            height: 30,
+            velocityY: 0,
+            gravity: 0.7,
+            jumpPower: -14,
+            isJumping: false,
+            doubleJump: false,
+            rotation: 0,
+            skin: 0,
+            gravityDirection: 1,
+            mode: 'cube'
         };
 
-        // Bilgi tabanında esnek arama
-        for (let key in knowledgeBase) {
-          const cleanKey = key.replace(/ne$/, "").replace(/kimdir$/, "").trim();
-          if (command.includes(cleanKey) || command.includes(cleanKey.split(" ")[0])) {
-            response = `${knowledgeBase[key]} ${userName}. Başka ne soracaksın?`;
-            conversationContext = 'bilgi';
-            break;
-          }
+        // Engeller, toplayıcılar
+        let obstacles = [];
+        let collectibles = [];
+        let obstacleFrequency = 80;
+        let baseSpeed = 6;
+        let frameCount = 0;
+        let score = 0;
+        let level = 1;
+        let difficulty = 1;
+        let speedMultiplier = 1;
+        let scoreMultiplier = 1;
+        let gameActive = false;
+
+        // Hareketli arka plan için parçacıklar
+        let particles = [];
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 20 + 10,
+                speedX: (Math.random() - 0.5) * 2,
+                speedY: (Math.random() - 0.5) * 2,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                shape: Math.random() < 0.5 ? 'square' : 'triangle'
+            });
         }
 
-        // Komut eşleştirme
-        if (!response) {
-          for (let key in commands) {
-            if (command.includes(key)) {
-              response = commands[key]();
-              break;
+        // Arka plan renk değişimi
+        let hue = 0;
+
+        // Küp görünümleri
+        const skins = [
+            {
+                name: 'Varsayılan',
+                cost: 0,
+                color: '#00ccff',
+                image: null,
+                unlocked: true,
+                imgObj: null
+            },
+            {
+                name: 'Yıldız',
+                cost: 100,
+                color: '#ffd700',
+                image: null,
+                unlocked: false,
+                imgObj: null
+            },
+            {
+                name: 'Alev',
+                cost: 200,
+                color: '#ff4500',
+                image: null,
+                unlocked: false,
+                imgObj: null
+            },
+            {
+                name: 'Buz',
+                cost: 150,
+                color: '#00b7eb',
+                image: null,
+                unlocked: false,
+                imgObj: null
+            },
+            {
+                name: 'Limon',
+                cost: 250,
+                color: '#32cd32',
+                image: null,
+                unlocked: false,
+                imgObj: null
+            },
+            {
+                name: 'Galaksi',
+                cost: 300,
+                color: '#8a2be2',
+                image: null,
+                unlocked: false,
+                imgObj: null
             }
-          }
+        ];
+
+        // Oyun döngüsü
+        function gameLoop() {
+            if (!gameActive) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
-        // Bilmiyorsa Google arama öner
-        if (!response) {
-          pendingSearchQuery = command;
-          response = `Bunu tam bilmiyorum ${userName}. Google’da arayayım mı? 'Ara' de yeter!`;
-          conversationContext = 'arama';
-        }
-      }
+        function update() {
+            // Oyuncu
+            if (player.mode === 'cube') {
+                player.velocityY += player.gravity * player.gravityDirection;
+                player.y += player.velocityY;
+                player.rotation += 0.1;
 
-      // Yanıt işleme
-      if (typeof response === 'string') {
-        responseDiv.textContent = response;
-        speak(response);
-      } else {
-        response.then(res => {
-          responseDiv.textContent = res;
-          speak(res);
-        }).catch(() => {
-          const errorResponse = `Bir şeyler ters gitti ${userName}, bi daha dene!`;
-          responseDiv.textContent = errorResponse;
-          speak(errorResponse);
+                // Yer/tavan çarpma
+                if (player.gravityDirection === 1) {
+                    if (player.y + player.height > canvas.height - 20) {
+                        player.y = canvas.height - 20 - player.height;
+                        player.velocityY = 0;
+                        player.isJumping = false;
+                        player.doubleJump = false;
+                    }
+                } else {
+                    if (player.y < 20) {
+                        player.y = 20;
+                        player.velocityY = 0;
+                        player.isJumping = false;
+                        player.doubleJump = false;
+                    }
+                }
+            } else {
+                // Gemi modu
+                player.y += player.velocityY;
+                if (player.y < 20) player.y = 20;
+                if (player.y + player.height > canvas.height - 20) player.y = canvas.height - 20 - player.height;
+            }
+
+            // Zorluk
+            difficulty = 1 + score / 1000;
+            let currentSpeed = baseSpeed * difficulty * speedMultiplier;
+            let currentFrequency = Math.max(50, obstacleFrequency / difficulty);
+
+            // Engeller ve portallar
+            frameCount++;
+            if (frameCount % Math.floor(currentFrequency) === 0) {
+                let type = Math.random();
+                let obstacle;
+                if (type < 0.25) {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 40 - 20,
+                        width: 30,
+                        height: 40,
+                        type: 'spike',
+                        passed: false
+                    };
+                } else if (type < 0.4) {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 60 - 20,
+                        radius: 20,
+                        type: 'saw',
+                        rotation: 0,
+                        passed: false
+                    };
+                } else if (type < 0.55) {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 80 - 20,
+                        width: 60,
+                        height: 20,
+                        type: 'platform',
+                        velocityY: 2 * difficulty,
+                        passed: false
+                    };
+                } else if (type < 0.7) {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 50,
+                        width: 20,
+                        height: 50,
+                        type: 'gravityPortal',
+                        passed: false
+                    };
+                } else if (type < 0.85) {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 50,
+                        width: 20,
+                        height: 50,
+                        type: 'speedPortal',
+                        passed: false
+                    };
+                } else if (type < 0.95) {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 50,
+                        width: 20,
+                        height: 50,
+                        type: 'colorPortal',
+                        passed: false
+                    };
+                } else {
+                    obstacle = {
+                        x: canvas.width,
+                        y: canvas.height - 50,
+                        width: 20,
+                        height: 50,
+                        type: 'shipPortal',
+                        passed: false
+                    };
+                }
+                obstacles.push(obstacle);
+
+                // Toplayıcılar
+                if (Math.random() < 0.3) {
+                    let colType = Math.random();
+                    collectibles.push({
+                        x: canvas.width + 50,
+                        y: canvas.height - 100,
+                        radius: 10,
+                        type: colType < 0.5 ? 'multiplier' : 'doubleJump',
+                        value: colType < 0.5 ? 2 : true
+                    });
+                }
+
+                // Diken zinciri
+                if (Math.random() < 0.1) {
+                    obstacles.push({
+                        x: canvas.width,
+                        y: canvas.height - 100,
+                        width: 50,
+                        height: 30,
+                        type: 'spikeChain',
+                        velocityY: 3 * difficulty,
+                        passed: false
+                    });
+                }
+            }
+
+            // Engeller ve portallar
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.x -= currentSpeed;
+
+                if (obs.type === 'saw') {
+                    obs.rotation += 0.2 * difficulty;
+                }
+                if (obs.type === 'platform') {
+                    obs.y += obs.velocityY;
+                    if (obs.y < canvas.height - 120 || obs.y > canvas.height - 60) {
+                        obs.velocityY *= -1;
+                    }
+                }
+                if (obs.type === 'spikeChain') {
+                    obs.y += obs.velocityY;
+                    if (obs.y < canvas.height - 150 || obs.y > canvas.height - 50) {
+                        obs.velocityY *= -1;
+                    }
+                }
+
+                // Çarpışma kontrolü
+                let hit = false;
+                if (obs.type === 'saw') {
+                    let dx = player.x + player.width / 2 - (obs.x + obs.radius);
+                    let dy = player.y + player.height / 2 - (obs.y + obs.radius);
+                    if (Math.sqrt(dx * dx + dy * dy) < obs.radius + player.width / 2) {
+                        hit = true;
+                    }
+                } else if (obs.type === 'spike' || obs.type === 'spikeChain') {
+                    if (
+                        player.x < obs.x + obs.width &&
+                        player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height &&
+                        player.y + player.height > obs.y
+                    ) {
+                        hit = true;
+                    }
+                } else if (obs.type === 'platform') {
+                    if (
+                        player.x < obs.x + obs.width &&
+                        player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height &&
+                        player.y + player.height > obs.y
+                    ) {
+                        // Yerçekimi yönüne göre platformun üstüne kon
+                        if (player.gravityDirection === 1 && player.velocityY > 0 && player.y + player.height - obs.y <= 10) {
+                            player.y = obs.y - player.height;
+                            player.velocityY = 0;
+                            player.isJumping = false;
+                            player.doubleJump = false;
+                        } else if (player.gravityDirection === -1 && player.velocityY < 0 && obs.y + obs.height - player.y <= 10) {
+                            player.y = obs.y + obs.height;
+                            player.velocityY = 0;
+                            player.isJumping = false;
+                            player.doubleJump = false;
+                        } else {
+                            hit = true;
+                        }
+                    }
+                } else if (obs.type === 'gravityPortal' && !obs.passed) {
+                    if (
+                        player.x < obs.x + obs.width &&
+                        player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height &&
+                        player.y + player.height > obs.y
+                    ) {
+                        player.gravityDirection *= -1;
+                        player.velocityY = 0;
+                        obs.passed = true;
+                        if (player.mode === 'ship') player.mode = 'cube';
+                    }
+                } else if (obs.type === 'speedPortal' && !obs.passed) {
+                    if (
+                        player.x < obs.x + obs.width &&
+                        player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height &&
+                        player.y + player.height > obs.y
+                    ) {
+                        speedMultiplier = 1.5;
+                        setTimeout(() => { speedMultiplier = 1; }, 5000);
+                        obs.passed = true;
+                    }
+                } else if (obs.type === 'colorPortal' && !obs.passed) {
+                    if (
+                        player.x < obs.x + obs.width &&
+                        player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height &&
+                        player.y + player.height > obs.y
+                    ) {
+                        let unlockedSkins = skins.filter(s => s.unlocked).map(s => skins.indexOf(s));
+                        if (unlockedSkins.length > 1) {
+                            let newSkin;
+                            do {
+                                newSkin = unlockedSkins[Math.floor(Math.random() * unlockedSkins.length)];
+                            } while (newSkin === player.skin);
+                            player.skin = newSkin;
+                        }
+                        obs.passed = true;
+                    }
+                } else if (obs.type === 'shipPortal' && !obs.passed) {
+                    if (
+                        player.x < obs.x + obs.width &&
+                        player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height &&
+                        player.y + player.height > obs.y
+                    ) {
+                        player.mode = 'ship';
+                        player.velocityY = 0;
+                        player.gravityDirection = 1;
+                        obs.passed = true;
+                    }
+                }
+
+                if (hit) {
+                    gameActive = false;
+                    canvas.style.display = 'none';
+                    background.style.display = 'block';
+                    document.getElementById('home').style.display = 'block';
+                    document.getElementById('scoreDisplay').textContent = score;
+                    document.getElementById('shopScoreDisplay').textContent = score;
+                    obstacles = [];
+                    collectibles = [];
+                    updateShop();
+                    alert('Oyun Bitti! Skor: ' + score + ' | Seviye: ' + level);
+                    return;
+                }
+
+                // Skor
+                if (!obs.passed && player.x > obs.x + (obs.width || obs.radius * 2)) {
+                    obs.passed = true;
+                    score += Math.floor(10 * difficulty * scoreMultiplier);
+                    document.getElementById('scoreDisplay').textContent = score;
+                }
+
+                // Ekran dışı
+                if (obs.x + (obs.width || obs.radius * 2) < 0) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // Toplayıcılar
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                let col = collectibles[i];
+                col.x -= currentSpeed;
+
+                if (
+                    player.x < col.x + col.radius * 2 &&
+                    player.x + player.width > col.x &&
+                    player.y < col.y + col.radius * 2 &&
+                    player.y + player.height > col.y
+                ) {
+                    if (col.type === 'multiplier') {
+                        scoreMultiplier = col.value;
+                        setTimeout(() => { scoreMultiplier = 1; }, 5000);
+                    } else if (col.type === 'doubleJump') {
+                        player.doubleJump = true;
+                        setTimeout(() => { player.doubleJump = false; }, 10000);
+                    }
+                    collectibles.splice(i, 1);
+                }
+
+                if (col.x + col.radius * 2 < 0) {
+                    collectibles.splice(i, 1);
+                }
+            }
+
+            // Hareketli arka plan parçacıkları
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+            });
+
+            // Arka plan renk değişimi
+            hue = (hue + 1) % 360;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Hareketli arka plan
+            let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, `hsl(${hue}, 70%, 20%)`);
+            gradient.addColorStop(1, `hsl(${(hue + 180) % 360}, 70%, 20%)`);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Parçacıklar
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                if (p.shape === 'square') {
+                    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y - p.size / 2);
+                    ctx.lineTo(p.x - p.size / 2, p.y + p.size / 2);
+                    ctx.lineTo(p.x + p.size / 2, p.y + p.size / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+
+            // Zemin/tavan
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            ctx.fillRect(0, 0, canvas.width, 20);
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, canvas.height - 20, canvas.width, 20);
+            ctx.strokeRect(0, 0, canvas.width, 20);
+
+            // Oyuncu
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+            if (player.mode === 'cube') ctx.rotate(player.rotation);
+            if (skins[player.skin].imgObj && skins[player.skin].imgObj.complete) {
+                ctx.drawImage(skins[player.skin].imgObj, -player.width / 2, -player.height / 2, player.width, player.height);
+            } else {
+                ctx.fillStyle = skins[player.skin].color;
+                ctx.fillRect(-player.width / 2, -player.height / 2, player.width, player.height);
+                ctx.strokeStyle = '#fff';
+                ctx.strokeRect(-player.width / 2, -player.height / 2, player.width, player.height);
+            }
+            ctx.restore();
+
+            // Engeller ve portallar
+            obstacles.forEach(obs => {
+                if (obs.type === 'spike') {
+                    ctx.fillStyle = '#ff4444';
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x, obs.y + obs.height);
+                    ctx.lineTo(obs.x + obs.width / 2, obs.y);
+                    ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                } else if (obs.type === 'saw') {
+                    ctx.save();
+                    ctx.translate(obs.x + obs.radius, obs.y + obs.radius);
+                    ctx.rotate(obs.rotation);
+                    ctx.fillStyle = '#aaa';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, obs.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    for (let i = 0; i < 8; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, obs.radius * 0.8);
+                        ctx.lineTo(obs.radius * 0.2, obs.radius * 1.3);
+                        ctx.lineTo(-obs.radius * 0.2, obs.radius * 1.3);
+                        ctx.closePath();
+                        ctx.fillStyle = '#ff6666';
+                        ctx.fill();
+                        ctx.rotate(Math.PI / 4);
+                    }
+                    ctx.restore();
+                } else if (obs.type === 'platform') {
+                    ctx.fillStyle = '#00ccff';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'gravityPortal') {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.strokeStyle = '#0f0';
+                    ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'speedPortal') {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.strokeStyle = '#ff0';
+                    ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'colorPortal') {
+                    ctx.fillStyle = 'rgba(255, 0, 255, 0.5)';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.strokeStyle = '#f0f';
+                    ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'shipPortal') {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.strokeStyle = '#00f';
+                    ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'spikeChain') {
+                    ctx.fillStyle = '#ff4444';
+                    for (let i = 0; i < 3; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(obs.x + i * 15, obs.y + obs.height);
+                        ctx.lineTo(obs.x + i * 15 + 7.5, obs.y);
+                        ctx.lineTo(obs.x + i * 15 + 15, obs.y + obs.height);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.strokeStyle = '#fff';
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            // Toplayıcılar
+            collectibles.forEach(col => {
+                ctx.fillStyle = col.type === 'multiplier' ? '#ffd700' : '#800080';
+                ctx.beginPath();
+                ctx.arc(col.x + col.radius, col.y + col.radius, col.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Arial';
+                ctx.fillText(col.type === 'multiplier' ? '2x' : '2J', col.x + col.radius - 8, col.y + col.radius + 4);
+            });
+
+            // Skor ve seviye
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Arial';
+            ctx.fillText('Skor: ' + score, 10, 30);
+            ctx.fillText('Seviye: ' + level, 10, 60);
+            if (scoreMultiplier > 1) {
+                ctx.fillText('Çarpan: ' + scoreMultiplier + 'x', 10, 90);
+            }
+            if (player.doubleJump) {
+                ctx.fillText('Çift Zıplama!', 10, 120);
+            }
+        }
+
+        // Kontroller
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameActive) {
+                if (player.mode === 'cube') {
+                    if (!player.isJumping) {
+                        player.velocityY = player.jumpPower * player.gravityDirection;
+                        player.isJumping = true;
+                    } else if (player.doubleJump) {
+                        player.velocityY = player.jumpPower * player.gravityDirection;
+                        player.doubleJump = false;
+                    }
+                } else {
+                    player.velocityY = -5; // Gemi yukarı
+                }
+            }
         });
-      }
-    }
 
-    function speak(text) {
-      if (isSpeaking) {
-        window.speechSynthesis.cancel();
-        console.log("Önceki konuşma kesildi.");
-      }
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' && player.mode === 'ship') {
+                player.velocityY = 5; // Gemi aşağı
+            }
+        });
 
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'tr-TR';
-
-      // Sesleri kontrol et
-      const voices = synth.getVoices();
-      console.log("Kullanılabilir sesler:", voices);
-      const turkishVoice = voices.find(voice => voice.lang === 'tr-TR') || voices[0];
-      if (turkishVoice) {
-        utter.voice = turkishVoice;
-        console.log("Seçilen ses:", turkishVoice.name);
-      } else {
-        console.warn("Türkçe ses bulunamadı, varsayılan ses kullanılıyor.");
-      }
-
-      utter.rate = 1.1; // Biraz daha hızlı, doğal
-      utter.pitch = 1.0;
-      utter.volume = 1.0;
-      isSpeaking = true;
-
-      console.log("Konuşma başlatılıyor:", text);
-      synth.speak(utter);
-
-      utter.onend = () => {
-        console.log("Konuşma bitti.");
-        isSpeaking = false;
-        if (assistantActive) {
-          startRecognition();
+        // Dükkan
+        function updateShop() {
+            const shopItems = document.getElementById('shopItems');
+            shopItems.innerHTML = '';
+            skins.forEach((skin, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'shop-item';
+                const itemCanvas = document.createElement('canvas');
+                itemCanvas.width = 50;
+                itemCanvas.height = 50;
+                const itemCtx = itemCanvas.getContext('2d');
+                if (skin.imgObj && skin.imgObj.complete) {
+                    itemCtx.drawImage(skin.imgObj, 0, 0, 50, 50);
+                } else {
+                    itemCtx.fillStyle = skin.color;
+                    itemCtx.fillRect(0, 0, 50, 50);
+                    itemCtx.strokeStyle = '#fff';
+                    itemCtx.strokeRect(0, 0, 50, 50);
+                }
+                const itemText = document.createElement('p');
+                itemText.textContent = `${skin.name} (${skin.cost} Skor)`;
+                const itemButton = document.createElement('button');
+                itemButton.textContent = skin.unlocked ? 'Seç' : `Satın Al (${skin.cost})`;
+                itemButton.onclick = () => {
+                    if (skin.unlocked) {
+                        player.skin = index;
+                        updatePreview();
+                        alert(`${skin.name} seçildi!`);
+                    } else if (score >= skin.cost) {
+                        score -= skin.cost;
+                        skin.unlocked = true;
+                        player.skin = index;
+                        document.getElementById('scoreDisplay').textContent = score;
+                        document.getElementById('shopScoreDisplay').textContent = score;
+                        updateShop();
+                        updatePreview();
+                        alert(`${skin.name} satın alındı! Kalan Skor: ${score}`);
+                    } else {
+                        alert(`Yeterli skorun yok! Gerekli: ${skin.cost}, Mevcut: ${score}`);
+                    }
+                };
+                itemDiv.appendChild(itemCanvas);
+                itemDiv.appendChild(itemText);
+                itemDiv.appendChild(itemButton);
+                shopItems.appendChild(itemDiv);
+            });
         }
-      };
 
-      utter.onerror = (e) => {
-        console.error("Konuşma hatası:", e);
-        isSpeaking = false;
-        statusDiv.textContent = `Sesim gelmedi mi ${userName}? Tarayıcı sesini kontrol et!`;
-        statusDiv.classList.add("error");
-        if (assistantActive) {
-          startRecognition();
+        // Önizleme
+        function updatePreview() {
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            if (skins[player.skin].imgObj && skins[player.skin].imgObj.complete) {
+                previewCtx.drawImage(skins[player.skin].imgObj, 0, 0, 60, 60);
+            } else {
+                previewCtx.fillStyle = skins[player.skin].color;
+                previewCtx.fillRect(0, 0, 60, 60);
+                previewCtx.strokeStyle = '#fff';
+                previewCtx.strokeRect(0, 0, 60, 60);
+            }
         }
-      };
-    }
 
-    // Sesleri önceden yükle
-    window.speechSynthesis.onvoiceschanged = () => {
-      const voices = window.speechSynthesis.getVoices();
-      console.log("Sesler yüklendi:", voices);
-    };
+        // Sayfalar
+        function showShop() {
+            document.getElementById('home').style.display = 'none';
+            document.getElementById('shop').style.display = 'block';
+            document.getElementById('shopScoreDisplay').textContent = score;
+            updateShop();
+        }
 
-    // Test butonu
-    document.getElementById("testButton").addEventListener("click", () => {
-      const testMessage = `Test başarılı ${userName}, ZeyX seni duyuyor!`;
-      console.log("Test butonu tıklandı.");
-      speak(testMessage);
-      responseDiv.textContent = testMessage;
-    });
+        function showHome() {
+            document.getElementById('shop').style.display = 'none';
+            document.getElementById('home').style.display = 'block';
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('levelDisplay').textContent = level;
+        }
 
-    // Mikrofon izni ve başlatma
-    if (recognition) {
-      try {
-        console.log("İlk ses tanıma başlatılıyor...");
-        recognition.start();
-      } catch (e) {
-        console.error("İlk başlatma hatası:", e);
-        statusDiv.textContent = `Mikrofon iznini ver ${userName}, yoksa seni duyamam!`;
-        statusDiv.classList.add("error");
-      }
-    } else {
-      statusDiv.textContent = "Ses tanıma desteklenmiyor. Chrome kullan ${userName}!";
-      statusDiv.classList.add("error");
-    }
-  </script>
+        // Oyun başlat
+        function startGame() {
+            gameActive = true;
+            canvas.style.display = 'block';
+            background.style.display = 'none';
+            document.getElementById('home').style.display = 'none';
+            player.y = window.innerHeight - 100;
+            player.velocityY = 0;
+            player.gravityDirection = 1;
+            player.mode = 'cube';
+            player.doubleJump = false;
+            obstacles = [];
+            collectibles = [];
+            frameCount = 0;
+            difficulty = 1;
+            speedMultiplier = 1;
+            scoreMultiplier = 1;
+            gameLoop();
+        }
+
+        // İlk yükleme
+        updatePreview();
+        document.getElementById('scoreDisplay').textContent = score;
+        document.getElementById('levelDisplay').textContent = level;
+
+        // Profil butonu (şimdilik işlevsiz)
+        document.getElementById('profileButton').onclick = () => {
+            alert('Profil bölümü henüz işlevsel değil!');
+        };
+    </script>
 </body>
 </html>
