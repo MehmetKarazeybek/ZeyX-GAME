@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeyX Sesli Asistan</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f 0%, #2a2a4a 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      color: #00ddeb;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 10px rgba(0, 221, 235, 0.5);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .status {
+      font-size: 1.4rem;
+      color: #ff79c6;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .status.active {
+      color: #50fa7b;
+      font-weight: 600;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status.error {
+      color: #ff5555;
+    }
+
+    #response {
+      font-size: 1.1rem;
+      color: #f1fa8c;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 1.2rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      margin-top: 2rem;
+      width: 90%;
+      max-width: 700px;
+      transition: transform 0.3s ease;
+    }
+
+    #response:hover {
+      transform: scale(1.02);
+    }
+
+    .button {
+      background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      margin-top: 2rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 1rem;
+      font-size: 0.85rem;
+      color: #b0b0b0;
+    }
+
+    .footer a {
+      color: #00ddeb;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer a:hover {
+      color: #50fa7b;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .mic-animation {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(80, 250, 123, 0.5), transparent);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      animation: micPulse 2s infinite;
+      z-index: -1;
+    }
+
+    .mic-animation.active {
+      opacity: 1;
+    }
+
+    @keyframes micPulse {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1>ZeyX Sesli Asistan</h1>
+  <div id="status" class="status">ZeyX: Dinlemeye başla...</div>
+  <div id="response"></div>
+  <button id="testButton" class="button">Test Et</button>
+  <div class="mic-animation" id="micAnimation"></div>
+
+  <div class="footer">
+    <p>Bu proje <a href="https://github.com/MehmetOgrenci" target="_blank">Mehmet Öğrenci</a> tarafından geliştirildi.</p>
+  </div>
+
+  <script>
+    // Speech Recognition Kurulumu
+    let recognition;
+    try {
+      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'tr-TR';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      console.log("SpeechRecognition başlatıldı.");
+    } catch (e) {
+      console.error("SpeechRecognition hatası:", e);
+      document.getElementById("status").textContent = "Ses tanıma desteklenmiyor! Chrome kullanmayı deneyin.";
+      document.getElementById("status").classList.add("error");
+    }
+
+    let assistantActive = false;
+    let isSpeaking = false;
+    let lastCommand = '';
+    let lastCommandTime = 0;
+    let userName = localStorage.getItem('userName') || 'dostum';
+    let conversationContext = '';
+    let notes = JSON.parse(localStorage.getItem('notes')) || [];
+    let recentQuestions = JSON.parse(localStorage.getItem('recentQuestions')) || [];
+    let pendingSearchQuery = null;
+    const statusDiv = document.getElementById("status");
+    const responseDiv = document.getElementById("response");
+    const micAnimation = document.getElementById("micAnimation");
+
+    // Bilgi tabanı
+    const knowledgeBase = {
+      "türkiye başkenti": "Türkiye’nin başkenti Ankara.",
+      "dünyanın en yüksek dağı": "Dünyanın en yüksek dağı Everest, yaklaşık 8.848 metre.",
+      "ay’da kim yürüdü": "Ay’da ilk yürüyen insan Neil Armstrong, 1969’da Apollo 11 göreviyle.",
+      "einstein kimdir": "Albert Einstein, görelilik teorisini geliştiren ünlü bir fizikçi.",
+      "pi sayısı": "Pi sayısı yaklaşık 3.14159, dairelerin çevresi için kullanılır.",
+      "en büyük gezegen": "Güneş sisteminin en büyük gezegeni Jüpiter.",
+      "su kaç derecede kaynar": "Su normal şartlarda 100 derecede kaynar.",
+      "en hızlı hayvan": "En hızlı hayvan karada çita, saatte 120 km hıza ulaşabilir.",
+      "shakespeare kimdir": "William Shakespeare, Hamlet ve Romeo Juliet gibi eserleriyle ünlü bir yazar.",
+      "telefonu kim icat etti": "Telefonu Alexander Graham Bell icat etti, 1876’da."
+    };
+
+    // Çeviri sözlüğü
+    const translations = {
+      "hello": "Merhaba",
+      "goodbye": "Güle güle",
+      "thank you": "Teşekkür ederim",
+      "please": "Lütfen",
+      "love": "Aşk",
+      "friend": "Arkadaş",
+      "yes": "Evet",
+      "no": "Hayır",
+      "good": "İyi",
+      "bad": "Kötü"
+    };
+
+    // Platform açma bağlantıları
+    const platforms = {
+      "instagram": "https://www.instagram.com",
+      "youtube": "https://www.youtube.com",
+      "twitter": "https://www.x.com",
+      "chatgpt": "https://chat.openai.com"
+    };
+
+    if (recognition) {
+      recognition.onresult = function(event) {
+        if (!event.results || !event.results[0]) {
+          console.log("Sonuç alınamadı.");
+          return;
+        }
+
+        const transcript = event.results[0][0].transcript.toLowerCase().trim();
+        console.log("Algılanan komut:", transcript);
+        responseDiv.textContent = `Duyulan: ${transcript}`;
+
+        // Aynı komutun hızlı tekrarını engelle
+        if (transcript === lastCommand && Date.now() - lastCommandTime < 2000) {
+          console.log("Tekrarlanan komut, yoksayılıyor:", transcript);
+          return;
+        }
+        lastCommand = transcript;
+        lastCommandTime = Date.now();
+
+        if (!assistantActive && transcript.includes("asistan")) {
+          assistantActive = true;
+          statusDiv.textContent = "ZeyX aktif! Ne yapalım?";
+          statusDiv.classList.remove("error");
+          statusDiv.classList.add("active");
+          micAnimation.classList.add("active");
+          const greetings = [
+            `Selam ${userName}, ne yapalım?`,
+            `Hey ${userName}, hadi konuşalım!`,
+            `Merhaba ${userName}, neyi merak ettin?`
+          ];
+          speak(greetings[Math.floor(Math.random() * greetings.length)]);
+          lastCommand = '';
+          pendingSearchQuery = null;
+        } else if (assistantActive && transcript.includes("teşekkürler")) {
+          assistantActive = false;
+          statusDiv.textContent = "ZeyX: Dinlemeye başla...";
+          statusDiv.classList.remove("active", "error");
+          micAnimation.classList.remove("active");
+          const farewells = [
+            `Görüşürüz ${userName}, kendine iyi bak!`,
+            `Tamam ${userName}, yine gel!`,
+            `Sonra konuşuruz ${userName}!`
+          ];
+          speak(farewells[Math.floor(Math.random() * farewells.length)]);
+          lastCommand = '';
+          conversationContext = '';
+          pendingSearchQuery = null;
+        } else if (assistantActive && transcript.trim().length > 0) {
+          // Soruyu kaydet
+          if (recentQuestions.length >= 20) recentQuestions.shift();
+          recentQuestions.push(transcript);
+          localStorage.setItem('recentQuestions', JSON.stringify(recentQuestions));
+          handleCommand(transcript);
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.error("Ses tanıma hatası:", event.error);
+        statusDiv.textContent = `Hata: ${event.error}. Mikrofon iznini ver ${userName}, yoksa seni duyamam!`;
+        statusDiv.classList.add("error");
+        if (!isSpeaking) {
+          setTimeout(() => startRecognition(), 1000);
+        }
+      };
+
+      recognition.onend = function() {
+        console.log("Ses tanıma durduruldu, isSpeaking:", isSpeaking, "assistantActive:", assistantActive);
+        if (!isSpeaking && assistantActive) {
+          startRecognition();
+        }
+      };
+    }
+
+    function startRecognition() {
+      if (recognition && !isSpeaking) {
+        try {
+          console.log("Ses tanıma başlatılıyor...");
+          recognition.start();
+          statusDiv.textContent = assistantActive
+            ? "ZeyX aktif! Ne yapalım?"
+            : "ZeyX: Dinlemeye başla...";
+          statusDiv.classList.remove("error");
+        } catch (e) {
+          console.error("Ses tanıma başlatma hatası:", e);
+          statusDiv.textContent = `Mikrofon iznini ver ${userName}, yoksa seni duyamam!`;
+          statusDiv.classList.add("error");
+        }
+      }
+    }
+
+    async function getWeather(city) {
+      const apiKey = "YOUR_API_KEY";
+      if (!apiKey || apiKey === "YOUR_API_KEY") {
+        return `Hava ${city}’de güneşli görünüyor ${userName}, keyfini çıkar! Ne yapalım şimdi?`;
+      }
+      try {
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=tr`
+        );
+        const data = await response.json();
+        if (data.cod === 200) {
+          return `${city}'de hava ${data.weather[0].description}, ${data.main.temp} derece ${userName}. Başka ne yapalım?`;
+        }
+        return `${city} için hava durumu bulamadım ${userName}. Ne konuşalım?`;
+      } catch (e) {
+        return `Hava durumu alınamadı ${userName}. Hadi, başka ne yapalım?`;
+      }
+    }
+
+    function calculate(expression) {
+      try {
+        const cleanExpression = expression
+          .replace("artı", "+")
+          .replace("eksi", "-")
+          .replace("çarpı", "*")
+          .replace("bölü", "/")
+          .replace("böl", "/");
+        const result = eval(cleanExpression);
+        if (isFinite(result)) {
+          return `Sonuç ${result} ${userName}! Başka ne hesaplayalım?`;
+        }
+        return `Bunu hesaplayamadım ${userName}, başka ne yapalım?`;
+      } catch (e) {
+        return `Hesaplamada hata ${userName}, bi daha dene!`;
+      }
+    }
+
+    function performGoogleSearch(query) {
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      window.open(url, "_blank");
+      return `Google’da "${query}" aramasını açtım ${userName}! Ne yapalım şimdi?`;
+    }
+
+    function openPlatform(platform) {
+      const url = platforms[platform];
+      if (url) {
+        window.open(url, "_blank");
+        return `${platform.charAt(0).toUpperCase() + platform.slice(1)}'ı açtım ${userName}, ne yapalım şimdi?`;
+      }
+      return `Bunu açamadım ${userName}, başka ne yapalım?`;
+    }
+
+    function handleCommand(command) {
+      console.log("Komut işleniyor:", command);
+      let response = null;
+
+      // Google arama izni
+      if (pendingSearchQuery && command.includes("ara")) {
+        response = performGoogleSearch(pendingSearchQuery);
+        pendingSearchQuery = null;
+        conversationContext = 'arama';
+      } else if (pendingSearchQuery && !command.includes("ara")) {
+        pendingSearchQuery = null;
+        conversationContext = '';
+      }
+
+      if (!response) {
+        const commands = {
+          "saat": () => {
+            const now = new Date();
+            const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            conversationContext = 'saat';
+            return `Saat ${time} ${userName}. Ne yapalım şimdi?`;
+          },
+          "bugün hangi gün": () => {
+            const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+            const today = new Date().getDay();
+            conversationContext = 'zaman';
+            return `Bugün ${days[today]} ${userName}. Başka ne soracaksın?`;
+          },
+          "hava durumu": () => {
+            const cityMatch = command.match(/hava durumu\s+(.+)/) || command.match(/(.+)\s+hava durumu/);
+            const city = cityMatch ? cityMatch[1].trim() : "İstanbul";
+            conversationContext = 'hava';
+            return getWeather(city);
+          },
+          "hesap": () => {
+            const calcMatch = command.match(/hesap\s+(.+)/);
+            if (calcMatch) {
+              conversationContext = 'hesap';
+              return calculate(calcMatch[1].trim());
+            }
+            return `Ne hesaplayayım ${userName}? Mesela, 2 artı 2!`;
+          },
+          "çevir": () => {
+            const wordMatch = command.match(/çevir\s+(.+)/);
+            if (wordMatch) {
+              const word = wordMatch[1].trim();
+              const translation = translations[word] || "Bunu bilmiyorum";
+              conversationContext = 'çeviri';
+              return `${word} Türkçede "${translation}" ${userName}. Başka ne çevirelim?`;
+            }
+            return `Ne çevireyim ${userName}? Mesela, "hello"!`;
+          },
+          "espiri": () => {
+            const jokes = [
+              `Neden bilgisayar sinirli? Çok bug’lanır ${userName}!`,
+              `Klavye neden şarkıcı oldu? Tuşları vardı ${userName}!`,
+              `Pizza neden yuvarlak? Kare olsa kutuya sığmaz ${userName}!`
+            ];
+            conversationContext = 'espiri';
+            return `${jokes[Math.floor(Math.random() * jokes.length)]} Başka ister misin ${userName}?`;
+          },
+          "adın ne": () => {
+            conversationContext = 'tanışma';
+            return `Ben ZeyX, senin asistanın ${userName}! Ne konuşalım?`;
+          },
+          "adımı hatırla": () => {
+            const name = command.replace("adımı hatırla", "").trim();
+            if (name) {
+              userName = name;
+              localStorage.setItem('userName', userName);
+              conversationContext = 'tanışma';
+              return `Sana artık ${userName} diyeceğim! Ne yapalım şimdi?`;
+            }
+            return `Adın ne ${userName}? Söyle, kaydedeyim!`;
+          },
+          "not al": () => {
+            const note = command.replace("not al", "").trim();
+            if (note) {
+              notes.push({ text: note, date: new Date().toLocaleString('tr-TR') });
+              localStorage.setItem('notes', JSON.stringify(notes));
+              conversationContext = 'not';
+              return `Not aldım: ${note} ${userName}. Başka ne not alayım?`;
+            }
+            return `Ne not alayım ${userName}?`;
+          },
+          "notları göster": () => {
+            if (notes.length > 0) {
+              const noteList = notes.map((n, i) => `${i + 1}. ${n.text} (${n.date})`).join(", ");
+              conversationContext = 'not';
+              return `Notların: ${noteList} ${userName}. Başka ne yapalım?`;
+            }
+            return `Not yok ${userName}, bi tane alayım mı?`;
+          },
+          "selam": () => {
+            conversationContext = 'selam';
+            return `Selam ${userName}! Nasılsın, ne yapalım?`;
+          },
+          "nasılsın": () => {
+            conversationContext = 'sohbet';
+            return `İyiyim ${userName}, sen nasılsın? Ne konuşalım?`;
+          },
+          "günaydın": () => {
+            conversationContext = 'selam';
+            return `Günaydın ${userName}! Harika bir gün, ne yapalım?`;
+          },
+          "merhaba": () => {
+            conversationContext = 'selam';
+            return `Merhaba ${userName}! Harika bir gün, ne yapalım?`;
+          },
+          "iyi geceler": () => {
+            conversationContext = 'selam';
+            return `İyi geceler ${userName}, tatlı rüyalar! Yarın görüşürüz!`;
+          },
+          "ne yapabilirsin": () => {
+            conversationContext = 'yardım';
+            return `Saat, hava, hesap, espri, not alma, site açma... Ne istersen ${userName}! Hadi, bi şey sor!`;
+          },
+          "instagram'ı aç": () => {
+            conversationContext = 'platform';
+            return openPlatform("instagram");
+          },
+          "youtube'u aç": () => {
+            conversationContext = 'platform';
+            return openPlatform("youtube");
+          },
+          "twitter'ı aç": () => {
+            conversationContext = 'platform';
+            return openPlatform("twitter");
+          },
+          "chatgpt'yi aç": () => {
+            conversationContext = 'platform';
+            return openPlatform("chatgpt");
+          }
+        };
+
+        // Bilgi tabanında esnek arama
+        for (let key in knowledgeBase) {
+          const cleanKey = key.replace(/ne$/, "").replace(/kimdir$/, "").trim();
+          if (command.includes(cleanKey) || command.includes(cleanKey.split(" ")[0])) {
+            response = `${knowledgeBase[key]} ${userName}. Başka ne soracaksın?`;
+            conversationContext = 'bilgi';
+            break;
+          }
+        }
+
+        // Komut eşleştirme
+        if (!response) {
+          for (let key in commands) {
+            if (command.includes(key)) {
+              response = commands[key]();
+              break;
+            }
+          }
+        }
+
+        // Bilmiyorsa Google arama öner
+        if (!response) {
+          pendingSearchQuery = command;
+          response = `Bunu tam bilmiyorum ${userName}. Google’da arayayım mı? 'Ara' de yeter!`;
+          conversationContext = 'arama';
+        }
+      }
+
+      // Yanıt işleme
+      if (typeof response === 'string') {
+        responseDiv.textContent = response;
+        speak(response);
+      } else {
+        response.then(res => {
+          responseDiv.textContent = res;
+          speak(res);
+        }).catch(() => {
+          const errorResponse = `Bir şeyler ters gitti ${userName}, bi daha dene!`;
+          responseDiv.textContent = errorResponse;
+          speak(errorResponse);
+        });
+      }
+    }
+
+    function speak(text) {
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        console.log("Önceki konuşma kesildi.");
+      }
+
+      const synth = window.speechSynthesis;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'tr-TR';
+
+      // Sesleri kontrol et
+      const voices = synth.getVoices();
+      console.log("Kullanılabilir sesler:", voices);
+      const turkishVoice = voices.find(voice => voice.lang === 'tr-TR') || voices[0];
+      if (turkishVoice) {
+        utter.voice = turkishVoice;
+        console.log("Seçilen ses:", turkishVoice.name);
+      } else {
+        console.warn("Türkçe ses bulunamadı, varsayılan ses kullanılıyor.");
+      }
+
+      utter.rate = 1.1; // Biraz daha hızlı, doğal
+      utter.pitch = 1.0;
+      utter.volume = 1.0;
+      isSpeaking = true;
+
+      console.log("Konuşma başlatılıyor:", text);
+      synth.speak(utter);
+
+      utter.onend = () => {
+        console.log("Konuşma bitti.");
+        isSpeaking = false;
+        if (assistantActive) {
+          startRecognition();
+        }
+      };
+
+      utter.onerror = (e) => {
+        console.error("Konuşma hatası:", e);
+        isSpeaking = false;
+        statusDiv.textContent = `Sesim gelmedi mi ${userName}? Tarayıcı sesini kontrol et!`;
+        statusDiv.classList.add("error");
+        if (assistantActive) {
+          startRecognition();
+        }
+      };
+    }
+
+    // Sesleri önceden yükle
+    window.speechSynthesis.onvoiceschanged = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log("Sesler yüklendi:", voices);
+    };
+
+    // Test butonu
+    document.getElementById("testButton").addEventListener("click", () => {
+      const testMessage = `Test başarılı ${userName}, ZeyX seni duyuyor!`;
+      console.log("Test butonu tıklandı.");
+      speak(testMessage);
+      responseDiv.textContent = testMessage;
+    });
+
+    // Mikrofon izni ve başlatma
+    if (recognition) {
+      try {
+        console.log("İlk ses tanıma başlatılıyor...");
+        recognition.start();
+      } catch (e) {
+        console.error("İlk başlatma hatası:", e);
+        statusDiv.textContent = `Mikrofon iznini ver ${userName}, yoksa seni duyamam!`;
+        statusDiv.classList.add("error");
+      }
+    } else {
+      statusDiv.textContent = "Ses tanıma desteklenmiyor. Chrome kullan ${userName}!";
+      statusDiv.classList.add("error");
+    }
+  </script>
+</body>
+</html>
