@@ -834,7 +834,7 @@
         });
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            if (Date.now() - touchStartTime < 200 && gameActive) {
+            if (Date.now() - touchStartTime < 100 && gameActive) {
                 if (!player.isJumping) {
                     player.velocityY = player.jumpPower;
                     player.isJumping = true;
