@@ -247,7 +247,7 @@
             height: isMobile ? 35 : 30,
             velocityY: 0,
             gravity: isMobile ? 0.5 : 0.7,
-            jumpPower: isMobile ? -12 : -14,
+            jumpPower: isMobile ? -14 : -18,
             isJumping: false,
             doubleJump: false,
             rotation: 0,
@@ -834,7 +834,7 @@
         });
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            if (Date.now() - touchStartTime < 100 && gameActive) {
+            if (Date.now() - touchStartTime < 400 && gameActive) {
                 if (!player.isJumping) {
                     player.velocityY = player.jumpPower;
                     player.isJumping = true;
