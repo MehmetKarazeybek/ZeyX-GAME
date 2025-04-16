@@ -505,13 +505,13 @@
                 }
                 if (obs.type === 'platform') {
                     obs.y += obs.velocityY;
-                    if (obs.y < canvas.height - 120 || obs.y > canvas.height - 60) {
+                    if (obs.y < canvas.height - 200 || obs.y > canvas.height - 60) {
                         obs.velocityY *= -1;
                     }
                 }
                 if (obs.type === 'spikeChain') {
                     obs.y += obs.velocityY;
-                    if (obs.y < canvas.height - 150 || obs.y > canvas.height - 50) {
+                    if (obs.y < canvas.height - 100 || obs.y > canvas.height - 50) {
                         obs.velocityY *= -1;
                     }
                 }
