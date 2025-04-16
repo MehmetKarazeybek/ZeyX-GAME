@@ -434,7 +434,7 @@
 
             // Zorluk
             let currentSpeed = baseSpeed * difficulty;
-            let currentFrequency = Math.max(60, obstacleFrequency / difficulty);
+            let currentFrequency = Math.max(40, obstacleFrequency / difficulty);
 
             // Engeller
             frameCount++;
@@ -473,8 +473,8 @@
                     obstacle = {
                         x: canvas.width,
                         y: canvas.height - 100,
-                        width: 50,
-                        height: 30,
+                        width: 35,
+                        height: 20,
                         type: 'spikeChain',
                         velocityY: 2 * difficulty,
                         passed: false
